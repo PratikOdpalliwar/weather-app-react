@@ -1,8 +1,8 @@
 import React, { useState } from "react";
+import axios from "axios";
 import './App.css';
 
 export default function App() {
-  
   const [query, setQuery] = useState("");
   const [weather, setWeather] = useState({});
 
@@ -12,14 +12,21 @@ export default function App() {
   }
 
   const search = (evt) => {
-    
     if (evt.key === "Enter") {
-      fetch(`${Api.base}weather?q=${query}&units=metric&appid=${Api.key}`)
-        .then((res) => res.json())
-        .then((result) => {
-          setWeather(result);
+      axios.get(`${Api.base}weather`, {
+        params: {
+          q: query,
+          units: 'metric',
+          appid: Api.key
+        }
+      })
+        .then((response) => {
+          setWeather(response.data);
           setQuery("");
-          console.log(result);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching weather:", error);
         });
     }
   }
@@ -36,16 +43,10 @@ export default function App() {
     return `${day} ${date} ${month} ${year}`
   }
 
-
-
-
   return (
-    <div className={(typeof weather.main !== "undefined") ?
-      ((weather.main.temp > 16) ?
-        "container night " : "container") : "container"}>
-
+    <div className={(typeof weather.main !== "undefined") && "container"}>
       <div className="App">
-        <div className="container">
+        <div className={weather.main && (weather.main.temp > 16 ? "container" : "containernight")}>
           <input
             className="search-bar"
             type="text"
@@ -55,23 +56,20 @@ export default function App() {
             placeholder="Search Weather"
           />
 
-
-
-          {(typeof weather.main !== "undefined") ?
-            (
-              <>
-                <div className="location-box">
-                  <div className="city-name">{weather.name}, {weather.sys.country}</div>
-                  <div className="date">{dateBuilder(new Date())}</div>
-                </div>
-                <div className="temp-display">
-                  {Math.round(weather.main.temp)}°C
-                </div>
-                <div className="weather">
-                  {weather.weather[0].main}
-                </div>
-              </>
-            ) : ("")}
+          {(typeof weather.main !== "undefined") ? (
+            <>
+              <div className="location-box">
+                <div className="city-name">{weather.name}, {weather.sys.country}</div>
+                <div className="date">{dateBuilder(new Date())}</div>
+              </div>
+              <div className="temp-display">
+                {Math.round(weather.main.temp)}°C
+              </div>
+              <div className="weather">
+                {weather.weather[0].main}
+              </div>
+            </>
+          ) : ("")}
         </div>
       </div>
     </div>
